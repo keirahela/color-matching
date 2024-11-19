@@ -1,0 +1,42 @@
+* {
+    margin: 0 auto;
+}
+
+body {
+    background-color: black;
+}
+
+.flex-holder {
+    width: 50vw;
+    background-color:darkred;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.szin {
+    font-size: xx-large;
+}
+
+.box {
+    border: 2px solid white;
+    height: 150px;
+    width: 250px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 5px 5px 10px 1px gray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn {
+    height: 50px;
+    width: 150px;
+}
+
+.flex-inside {
+    gap: 30px;
+    display: flex;
+    justify-content: space-between;
+}
