@@ -21,6 +21,12 @@ const colors = {
 };
 
 let score = 0;
+let meter = 0;
+let multiplier = 1;
+let gameRunning = false;
+let timer = 0;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function getRandomColor() {
     const colorNames = Object.keys(colors);
@@ -38,8 +44,8 @@ function generateColorMatch() {
     const color1 = getRandomColor();
     const color2 = getRandomColor();
   
-    document.getElementById('szin').innerText = color1;
-    document.getElementById('szin2').innerText = color2;
+    document.getElementById('left-card').innerText = color1;
+    document.getElementById('right-card').innerText = color2;
 
     const randomColor1 = getDifferentColor();
     const randomColor2 = getDifferentColor();
@@ -47,8 +53,8 @@ function generateColorMatch() {
     const rgbRandom1 = colors[randomColor1];
     const rgbRandom2 = colors[randomColor2];
   
-    document.getElementById('szin').style.color = `rgb(${rgbRandom1})`;
-    document.getElementById('szin2').style.color = `rgb(${rgbRandom2})`;
+    document.getElementById('left-card').style.color = `rgb(${rgbRandom1})`;
+    document.getElementById('right-card').style.color = `rgb(${rgbRandom2})`;
 }
   
 function rgbToColorName(rgb) {
@@ -64,27 +70,100 @@ function rgbToColorName(rgb) {
 }
 
 function colorMatchesWithText() {
-    if (`rgb(${colors[document.getElementById('szin2').innerText]})` == document.getElementById('szin').style.color) {
-        score++;
+    if (`rgb(${colors[document.getElementById('right-card').innerText]})` == document.getElementById('left-card').style.color) {
+        score += 50 * multiplier;
+        checkForLevelUp();
+    } else {
+        resetLevel();
     }
     generateColorMatch()
 }
 
 function colorDoesntMatchWithText() {
-    if (`rgb(${colors[document.getElementById('szin2').innerText]})` != document.getElementById('szin').style.color) {
-        score++;
+    if (`rgb(${colors[document.getElementById('right-card').innerText]})` != document.getElementById('left-card').style.color) {
+        score += 50 * multiplier;
+        checkForLevelUp();
+    } else {
+        resetLevel();
     }
     generateColorMatch();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    generateColorMatch();
+function resetLevel() {
+    const width = document.getElementById('meter-fill').style.width;
+    if(width == "0%") {
+        if(multiplier > 1) {
+            multiplier -= 1;
+        }
+        document.getElementById('multiplier').innerText = multiplier
+    } else {
+        meter = 0;
+        document.getElementById('meter-fill').style.width = (meter / 4) * 100 + "%"
+    }
+}
 
-    document.addEventListener('keydown', (ev) => {
+function checkForLevelUp() {
+    if((meter + 1) >= 4) {
+        meter = 0;
+        if(multiplier < 10) {
+            multiplier += 1
+        }
+    } else {
+        meter++;
+    }
+    document.getElementById('multiplier').innerText = multiplier
+    document.getElementById('meter-fill').style.width = (meter / 4) * 100 + "%"
+}
+
+function handleAnswer(status) {
+    if(!gameRunning) return;
+    if(status) return colorMatchesWithText();
+
+    colorDoesntMatchWithText();
+}
+
+function stopGame() {
+    if(!gameRunning) return;
+    gameRunning = false
+    document.getElementById('left-card').innerText = "-";
+    document.getElementById('right-card').innerText = "-";
+    document.getElementById('left-card').style.color = `rgb(0,0,0)`;
+    document.getElementById('right-card').style.color = `rgb(0,0,0)`;
+}
+
+async function startGame() {
+    if(gameRunning) return;
+    gameRunning = true;
+    timer = 20;
+    meter = 0;
+    multiplier = 1;
+    score = 0;
+    document.getElementById('multiplier').innerText = multiplier
+    document.getElementById('meter-fill').style.width = (meter / 4) * 100 + "%"
+    generateColorMatch();
+    while(timer > 0) {
+        document.getElementById('timer').innerText = timer;
+        await sleep(1000);
+        timer -= 1;
+    }
+    timer = 0;
+    document.getElementById('timer').innerText = timer;
+    stopGame();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('keydown', async (ev) => {
+        if(!gameRunning) return;
         if (ev.key === "ArrowRight") {
             colorMatchesWithText();
+            document.getElementById('yes').style.opacity = 0.7;
+            await sleep(200);
+            document.getElementById('yes').style.opacity = 1;
         } else if (ev.key === "ArrowLeft") {
             colorDoesntMatchWithText();
+            document.getElementById('no').style.opacity = 0.7;
+            await sleep(200);
+            document.getElementById('no').style.opacity = 1;
         }
     })
 })
